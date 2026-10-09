@@ -517,6 +517,15 @@ These were chosen while building and not discussed; change them freely.
 - The profile guide is linked on GitHub, because the installer does not ship the `skills`
   folder. The Profile page's hint, which pointed at "this app's folder", now links there too.
 
+### One copy at a time
+
+Asked `[A]`: do not allow several copies running in the background. Two had been found
+running at once; the second could not register the hotkeys and shared the transcript database.
+
+Built `[D]`: a second launch shows the running copy's main window, as the tray icon does, and
+exits. A per-session named mutex (`SingleInstance`), so the installed app and a build from the
+source tree count as one app.
+
 ### Open `[P]`
 
 - A checklist on Home that ticks itself off as keys and a profile are saved.

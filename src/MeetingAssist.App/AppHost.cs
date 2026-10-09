@@ -511,6 +511,9 @@ public sealed class AppHost : IMainHost, IDisposable
         _overlay.Panic();
     }
 
+    /// <summary>The app was launched again while running: it shows itself, as the tray does.</summary>
+    public void BringToFront() => OpenMain();
+
     /// <summary>The main window, asked for: from the tray, or the overlay's settings button.</summary>
     private void OpenMain()
     {

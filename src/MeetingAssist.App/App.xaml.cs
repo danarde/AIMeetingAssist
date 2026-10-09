@@ -49,6 +49,9 @@ public partial class App : Application
         }
     }
 
+    /// <summary>A later launch asked this copy to show itself. Called from any thread.</summary>
+    public void BringToFront() => Dispatcher.BeginInvoke(() => _host?.BringToFront());
+
     protected override void OnExit(ExitEventArgs e)
     {
         _host?.Dispose();
