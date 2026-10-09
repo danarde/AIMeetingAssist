@@ -9,6 +9,7 @@ namespace MeetingAssist.App;
 public partial class App : Application
 {
     private AppHost? _host;
+    private readonly Updates _updates = new();
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -37,6 +38,7 @@ public partial class App : Application
         {
             _host = new AppHost(AppConfig.FromEnvironment());
             _host.Start();
+            _updates.DownloadInBackground();
         }
         catch (Exception ex)
         {
@@ -50,6 +52,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         _host?.Dispose();
+        _updates.ApplyOnExit();
         Log.CloseAndFlush();
         base.OnExit(e);
     }

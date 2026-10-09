@@ -15,3 +15,6 @@ profile.json
 # Spike output
 logs/
 out/
+
+# Release builds (tools/release.ps1)
+releases/

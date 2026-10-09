@@ -17,6 +17,8 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
     <!-- Required by [LibraryImport]; the source generator emits unsafe marshalling code. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Program.Main runs Velopack before WPF starts; see Program.cs. -->
+    <StartupObject>MeetingAssist.App.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -41,6 +43,8 @@
     <PackageReference Include="Serilog" Version="4.3.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <!-- Installer and updates from GitHub Releases (docs/development.md, Releases). -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
 </Project>

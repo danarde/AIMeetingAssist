@@ -25,7 +25,15 @@ when you press a hotkey, shows short notes on what was just said and what you pr
 
 ## Getting started
 
-You need Windows 10 (version 2004) or Windows 11, and the [.NET 10 SDK](https://dotnet.microsoft.com/download).
+You need Windows 10 (version 2004) or Windows 11.
+
+Download **AIMeetingAssist-win-Setup.exe** from the
+[latest release](https://github.com/danarde/AIMeetingAssist/releases/latest) and run it. It
+installs for your user only, with no admin rights, and updates itself: a new version downloads
+in the background and installs when you quit the app. The installer is not code-signed, so
+Windows may say it "protected your PC": choose **More info → Run anyway**.
+
+To build from source instead, install the [.NET 10 SDK](https://dotnet.microsoft.com/download):
 
 ```powershell
 git clone https://github.com/danarde/AIMeetingAssist.git

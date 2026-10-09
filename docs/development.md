@@ -25,6 +25,7 @@ src/MeetingAssist.CaptureProbe  throwaway capture-exclusion probe
 src/MeetingAssist.Tests         unit tests
 skills/meeting-profile          the profile guide, also packaged as a Claude skill
 tools/render-icon.cs            renders the app icon
+tools/release.ps1               builds the installer for a release
 ```
 
 The split is deliberate. WPF is the one part that cannot be tested automatically, so it holds as
@@ -145,3 +146,29 @@ copy out\app.ico src\MeetingAssist.App\app.ico
 ```
 
 The main window's sidebar draws the same icon in XAML; keep the two alike.
+
+## Releases
+
+The installer and updates come from [Velopack](https://velopack.io). `Program.Main` hands
+control to Velopack first, because the installer and the updater start the exe with their own
+arguments. `Updates.cs` checks this repository's GitHub Releases after start, downloads in the
+background and installs on quit. A build run from the source tree is not installed and skips
+all of it.
+
+To publish a version, write its release notes to a file, then build and pack it. The version is
+given on the command line; nothing in the code changes:
+
+```powershell
+dotnet tool install -g vpk --version 1.2.161
+.\tools\release.ps1 -Version 1.1.0 -Notes notes.md
+```
+
+The script publishes a self-contained build and packs it into `releases\1.1.0`. It downloads the
+previous release first, so `vpk` also builds a delta package and updates stay small. Then create
+the GitHub release with everything in that folder except `assets.win.json`:
+
+```powershell
+gh release create v1.1.0 --title "MeetingAssist 1.1.0" --notes-file notes.md (Get-ChildItem releases\1.1.0 -Exclude assets.win.json).FullName
+```
+
+Keep the `vpk` version equal to the Velopack package version in `MeetingAssist.App.csproj`.
