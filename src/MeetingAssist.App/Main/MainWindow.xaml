@@ -1,0 +1,742 @@
+<Window x:Class="MeetingAssist.App.Main.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MeetingAssist"
+        Width="1000" Height="720"
+        MinWidth="820" MinHeight="540"
+        ShowInTaskbar="True"
+        Icon="pack://application:,,,/meetingassist;component/app.ico"
+        WindowStartupLocation="CenterScreen"
+        Background="#0E1525"
+        ThemeMode="Dark">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Rail" Color="#0A101C"/>
+        <SolidColorBrush x:Key="CardFill" Color="#131C2E"/>
+        <SolidColorBrush x:Key="CardEdge" Color="#1F2A3F"/>
+        <SolidColorBrush x:Key="Hover" Color="#162036"/>
+        <SolidColorBrush x:Key="Faint" Color="#64748B"/>
+
+        <Style x:Key="Glyph" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="PageTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="PageLead" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,24"/>
+        </Style>
+
+        <Style x:Key="Overline" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Faint}"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardFill}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardEdge}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="22,20"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <!-- One section per page; the pages share this frame so every one starts in the same place. -->
+        <Style x:Key="Page" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+        </Style>
+
+        <Style x:Key="PageBody" TargetType="StackPanel">
+            <Setter Property="Margin" Value="40,32,40,32"/>
+            <!-- Wider than this, lines of hint text get too long to read; a maximized window
+                 centres the page instead. -->
+            <Setter Property="MaxWidth" Value="840"/>
+        </Style>
+
+        <!-- The sidebar. RadioButtons, so exactly one section is open; the glyph rides in Tag. -->
+        <Style x:Key="Nav" TargetType="RadioButton">
+            <Setter Property="GroupName" Value="Nav"/>
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="6"
+                                Margin="10,1" Padding="12,8">
+                            <Grid>
+                                <Border x:Name="Bar" Width="3" Height="16" CornerRadius="1.5"
+                                        Background="{StaticResource Accent}" HorizontalAlignment="Left"
+                                        Margin="-12,0,0,0" Visibility="Hidden"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Glyph}" Text="{TemplateBinding Tag}"
+                                               FontSize="14" Width="20"
+                                               Foreground="{TemplateBinding Foreground}"/>
+                                    <TextBlock Text="{TemplateBinding Content}" Margin="10,0,0,0" FontSize="13"
+                                               VerticalAlignment="Center"
+                                               Foreground="{TemplateBinding Foreground}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource Hover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource Field}"/>
+                                <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="Rounded" TargetType="Button">
+            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6"
+                    Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+
+        <!-- The one thing each page wants you to do. -->
+        <Style x:Key="Primary" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template" Value="{StaticResource Rounded}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3B82F6"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#1D4ED8"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.45"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="Danger" TargetType="Button" BasedOn="{StaticResource Primary}">
+            <Setter Property="Background" Value="#B91C1C"/>
+            <Setter Property="BorderBrush" Value="#EF4444"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#DC2626"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="Quiet" TargetType="Button" BasedOn="{StaticResource Primary}">
+            <Setter Property="Background" Value="#1B2537"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Edge}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#243149"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#1B2537"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- A button inside a list row: present, but quieter than the page's own actions. -->
+        <Style x:Key="Small" TargetType="Button" BasedOn="{StaticResource Quiet}">
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+        </Style>
+
+        <!-- Text that takes you somewhere. Its own TextBlock, because a generated one would pick
+             up the app-wide TextBlock style and come out Ink rather than Accent. -->
+        <Style x:Key="Link" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock Text="{TemplateBinding Content}" Background="Transparent"
+                                   Foreground="{TemplateBinding Foreground}" FontSize="{TemplateBinding FontSize}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#7DD3FC"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- One meeting, on Home and in History alike. Export and Delete are off during a
+             meeting: the folder Export opens is an ordinary window, which a screen share would
+             show, and the meeting being held is one of the rows. TYPE is blank for meetings
+             stored before it was recorded. -->
+        <DataTemplate x:Key="MeetingRowTemplate">
+            <Border x:Name="Row" BorderBrush="{StaticResource CardEdge}"
+                    BorderThickness="0,1,0,0" Padding="22,8" Background="Transparent">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="50"/>
+                        <ColumnDefinition Width="136"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding When}" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding Type}" Grid.Column="1" VerticalAlignment="Center"
+                               Foreground="{StaticResource Muted}"/>
+                    <TextBlock Text="{Binding Profile}" Grid.Column="2" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" Margin="0,0,12,0"/>
+                    <TextBlock Text="{Binding Length}" Grid.Column="3" VerticalAlignment="Center"
+                               Foreground="{StaticResource Muted}"/>
+                    <TextBlock Text="{Binding Lines}" Grid.Column="4" VerticalAlignment="Center"
+                               Foreground="{StaticResource Muted}" HorizontalAlignment="Right"/>
+                    <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Small}"
+                                Tag="{Binding Id}" Click="OnExport"
+                                IsEnabled="{Binding CanExport, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Write the transcript to a text file and show it in its folder">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Glyph}" Text="&#xE896;" FontSize="11" Margin="0,0,7,0"/>
+                                <TextBlock Text="Export"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Small}" Margin="6,0,0,0"
+                                Tag="{Binding Id}" Click="OnDeleteMeeting"
+                                IsEnabled="{Binding CanExport, RelativeSource={RelativeSource AncestorType=Window}}"
+                                ToolTip="Delete this meeting and its transcript">
+                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="12"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Row" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Row" Property="Background" Value="{StaticResource Hover}"/>
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ============================ SIDEBAR ============================ -->
+        <Border Background="{StaticResource Rail}" BorderBrush="{StaticResource CardEdge}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="22,24,16,22">
+                    <!-- The app icon's 32-unit version (tools/render-icon.cs): two voices and the
+                         spark of a cue between them. -->
+                    <Viewbox Width="28" Height="28">
+                        <Canvas Width="32" Height="32">
+                            <Rectangle Canvas.Left="1" Canvas.Top="1" Width="30" Height="30" RadiusX="7" RadiusY="7" Fill="#1E293B"/>
+                            <Rectangle Canvas.Left="4" Canvas.Top="12" Width="2.5" Height="8" RadiusX="1.25" RadiusY="1.25" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="8" Canvas.Top="8" Width="2.5" Height="16" RadiusX="1.25" RadiusY="1.25" Fill="#60A5FA"/>
+                            <Rectangle Canvas.Left="21.5" Canvas.Top="8" Width="2.5" Height="16" RadiusX="1.25" RadiusY="1.25" Fill="White"/>
+                            <Rectangle Canvas.Left="25.5" Canvas.Top="12" Width="2.5" Height="8" RadiusX="1.25" RadiusY="1.25" Fill="White"/>
+                            <Path Fill="#FBBF24" Data="M16 11.5 L17.5 14.5 L20.5 16 L17.5 17.5 L16 20.5 L14.5 17.5 L11.5 16 L14.5 14.5 Z"/>
+                        </Canvas>
+                    </Viewbox>
+                    <TextBlock Text="MeetingAssist" FontSize="15" FontWeight="SemiBold"
+                               Margin="11,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- The session, from wherever you are in the window. -->
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="24,12,16,20">
+                    <Ellipse x:Name="StateDot" Width="8" Height="8" Fill="#9096A0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="StateText" Text="Idle" Margin="9,0,0,0" FontSize="12"
+                               Foreground="{StaticResource Muted}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <RadioButton x:Name="NavHome" Style="{StaticResource Nav}" Content="Home" Tag="&#xE80F;"/>
+                    <RadioButton x:Name="NavHistory" Style="{StaticResource Nav}" Content="History" Tag="&#xE81C;"/>
+                    <TextBlock Style="{StaticResource Overline}" Text="SETTINGS" Margin="24,22,0,6"/>
+                    <RadioButton x:Name="NavProfile" Style="{StaticResource Nav}" Content="Profile" Tag="&#xE77B;"/>
+                    <RadioButton x:Name="NavDevices" Style="{StaticResource Nav}" Content="Devices" Tag="&#xE720;"/>
+                    <RadioButton x:Name="NavKeys" Style="{StaticResource Nav}" Content="Keys" Tag="&#xE8D7;"/>
+                    <RadioButton x:Name="NavHotkeys" Style="{StaticResource Nav}" Content="Hotkeys" Tag="&#xE765;"/>
+                    <RadioButton x:Name="NavOverlay" Style="{StaticResource Nav}" Content="Overlay" Tag="&#xE7F4;"/>
+                    <RadioButton x:Name="NavRehearsal" Style="{StaticResource Nav}" Content="Rehearsal" Tag="&#xE8F2;"/>
+                    <RadioButton x:Name="NavPlayback" Style="{StaticResource Nav}" Content="Playback" Tag="&#xE8D6;"/>
+                    <RadioButton x:Name="NavGeneral" Style="{StaticResource Nav}" Content="General" Tag="&#xE713;"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <DockPanel Grid.Column="1">
+
+            <!-- Settings sections only. Save applies everything; nothing is written as you type,
+                 so a session in progress cannot be reconfigured by a stray keystroke. -->
+            <Border x:Name="SaveBar" DockPanel.Dock="Bottom" Background="{StaticResource Rail}"
+                    BorderBrush="{StaticResource CardEdge}" BorderThickness="0,1,0,0" Padding="40,12"
+                    Visibility="Collapsed">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Primary}" Padding="26,8"
+                            Content="Save" Click="OnSave"/>
+                    <TextBlock x:Name="StatusText" Text="Changes apply when you save." VerticalAlignment="Center"
+                               Foreground="{StaticResource Muted}" FontSize="12" Margin="0,0,16,0"
+                               TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
+            </Border>
+
+            <Grid>
+                <!-- ============================== HOME ============================== -->
+                <ScrollViewer x:Name="HomePage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock x:Name="HomeTitle" Style="{StaticResource PageTitle}" Text="Ready for your next meeting"/>
+                        <TextBlock x:Name="HomeLead" Style="{StaticResource PageLead}"
+                                   Text="Pick the profile for this meeting and start. The overlay appears and this window hides; it comes back when the meeting ends."/>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Overline}" Text="PROFILE"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,20">
+                                    <ComboBox x:Name="HomeProfilePicker" Width="320"
+                                              SelectionChanged="OnProfileSelected"/>
+                                    <Button Style="{StaticResource Link}" Content="Edit profile"
+                                            Margin="16,0,0,0" VerticalAlignment="Center" Click="OnEditProfile"/>
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="StartButton" Style="{StaticResource Primary}" Click="OnStartMeeting">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="StartGlyph" Style="{StaticResource Glyph}"
+                                                       Text="&#xE768;" FontSize="12" Margin="0,0,10,0"/>
+                                            <TextBlock x:Name="StartLabel" Text="Start meeting"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="RehearseButton" Style="{StaticResource Quiet}" Margin="10,0,0,0"
+                                            Click="OnRehearse">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Style="{StaticResource Glyph}" Text="&#xE8F2;" FontSize="13"
+                                                       Margin="0,0,10,0"/>
+                                            <TextBlock Text="Rehearse with mock call"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock x:Name="StartHint" Style="{StaticResource Hint}" Margin="0,14,0,0" Text=""/>
+                                <TextBlock x:Name="OutcomeText" FontSize="12" TextWrapping="Wrap"
+                                           Margin="0,6,0,0" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="WarningsCard" Style="{StaticResource Card}" Background="#1A1812"
+                                BorderBrush="#4A3A14" Visibility="Collapsed">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Style="{StaticResource Glyph}" Text="&#xE7BA;" FontSize="14"
+                                               Foreground="{StaticResource Warn}"/>
+                                    <TextBlock Text="Worth fixing before your next meeting" FontWeight="SemiBold"
+                                               Margin="10,0,0,0"/>
+                                </StackPanel>
+                                <ItemsControl x:Name="WarningList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="24,5,0,5">
+                                                <Button x:Name="Fix" DockPanel.Dock="Right" Style="{StaticResource Link}"
+                                                        Content="{Binding FixLabel}" Tag="{Binding FixIn}"
+                                                        Click="OnFixWarning" Margin="20,0,0,0" VerticalAlignment="Top"/>
+                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12.5"
+                                                           Foreground="#E2E8F0"/>
+                                            </DockPanel>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding FixIn}" Value="{x:Null}">
+                                                    <Setter TargetName="Fix" Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <DockPanel Margin="2,6,0,12">
+                            <Button x:Name="SeeAll" DockPanel.Dock="Right" Style="{StaticResource Link}"
+                                    Content="See all" VerticalAlignment="Bottom" Click="OnSeeAll"/>
+                            <TextBlock Text="Recent meetings" FontSize="16" FontWeight="SemiBold"/>
+                        </DockPanel>
+
+                        <Border Style="{StaticResource Card}" Padding="0,4,0,4" Margin="0,0,0,8">
+                            <StackPanel>
+                                <Grid Margin="22,10,22,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="136"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Overline}" Text="WHEN"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="TYPE" Grid.Column="1"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="PROFILE" Grid.Column="2"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="LENGTH" Grid.Column="3"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="LINES" Grid.Column="4"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                                <ItemsControl x:Name="MeetingList" ItemTemplate="{StaticResource MeetingRowTemplate}"/>
+                                <TextBlock x:Name="NoMeetings" Style="{StaticResource Hint}" Margin="22,10,22,14"
+                                           Text="No meetings yet. Each one you hold appears here, newest first."/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="HomeExportProblem" Style="{StaticResource Hint}" Margin="2,0,0,4"
+                                   Foreground="{StaticResource Warn}" Visibility="Collapsed"/>
+                        <TextBlock x:Name="HomeStorage" Style="{StaticResource Hint}" Margin="2,0,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ HISTORY ============================ -->
+                <ScrollViewer x:Name="HistoryPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="History"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="Every meeting that transcribed something, newest first, rehearsals included. Export writes a meeting's transcript to a text file, laid out so it reads well to you and to an AI chat you might ask about the meeting, and shows it in its folder. The bin deletes a meeting from here for good; a file you exported stays."/>
+
+                        <Border Style="{StaticResource Card}" Padding="0,4,0,4" Margin="0,0,0,8">
+                            <StackPanel>
+                                <Grid Margin="22,10,22,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="136"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Overline}" Text="WHEN"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="TYPE" Grid.Column="1"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="PROFILE" Grid.Column="2"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="LENGTH" Grid.Column="3"/>
+                                    <TextBlock Style="{StaticResource Overline}" Text="LINES" Grid.Column="4"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                                <ItemsControl x:Name="HistoryList" ItemTemplate="{StaticResource MeetingRowTemplate}"/>
+                                <TextBlock x:Name="NoHistory" Style="{StaticResource Hint}" Margin="22,10,22,14"
+                                           Text="No meetings yet. Each one you hold appears here, newest first."/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="HistoryExportProblem" Style="{StaticResource Hint}" Margin="2,0,0,4"
+                                   Foreground="{StaticResource Warn}" Visibility="Collapsed"/>
+                        <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+                            <TextBlock x:Name="ExportFolderText" Style="{StaticResource Hint}" Margin="0,0,12,0"/>
+                            <Button Style="{StaticResource Link}" Content="Open folder" FontSize="11"
+                                    VerticalAlignment="Top" Margin="0,3,0,0" Click="OnOpenExportFolder"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ PROFILE ============================ -->
+                <ScrollViewer x:Name="ProfilePage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Profile"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="What the assistant knows about you and this meeting. Each profile is a separate set; choosing one here or on Home makes it the one the next meeting uses."/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <ComboBox x:Name="ProfilePicker" Width="260" SelectionChanged="OnProfileSelected"
+                                      Margin="0,0,12,0"/>
+                            <Button Content="New" Width="80" Click="OnNewProfile" Margin="0,0,8,0"/>
+                            <Button Content="Duplicate" Width="90" Click="OnDuplicateProfile" Margin="0,0,8,0"/>
+                            <Button Content="Delete" Width="80" Click="OnDeleteProfile" Margin="0,0,8,0"/>
+                            <Button Content="Paste from AI" Click="OnPasteProfile"
+                                    ToolTip="Make a new profile from the JSON an AI chat wrote and you copied"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,20"
+                                   Text="To have an AI write a profile, give it skills/meeting-profile/profile-guide.md from this app's folder, or the meeting-profile skill in Claude, with what you know about the meeting. Copy the JSON it writes, then Paste from AI."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="This meeting"/>
+                        <TextBox x:Name="MeetingText" AcceptsReturn="True" TextWrapping="Wrap" Height="84"
+                                 VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Style="{StaticResource Hint}" Text="The goal, who is attending and who they are, the agenda, what a good outcome looks like."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="About me"/>
+                        <TextBox x:Name="AboutMe" AcceptsReturn="True" TextWrapping="Wrap" Height="84"
+                                 VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Style="{StaticResource Hint}" Text="What you bring: your role, your experience, and the stories and figures you may want to hand."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Likely questions, with my answers"/>
+                        <TextBox x:Name="Questions" AcceptsReturn="True" TextWrapping="Wrap" Height="110"
+                                 VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Style="{StaticResource Hint}" Text="Questions or pushback you expect, one per line, each with the answer you want to give. This is the part that most changes what appears on screen."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Vocabulary"/>
+                        <TextBox x:Name="Vocabulary" AcceptsReturn="True" TextWrapping="Wrap" Height="64"
+                                 VerticalScrollBarVisibility="Auto" TextChanged="OnVocabularyChanged"/>
+                        <TextBlock x:Name="VocabularyCount" Style="{StaticResource Hint}" Text=""/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <StackPanel Width="150" Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Label}" Text="Language"/>
+                                <TextBox x:Name="LanguageCode"/>
+                            </StackPanel>
+                            <StackPanel Width="150" Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Label}" Text="Your label"/>
+                                <TextBox x:Name="MicLabel"/>
+                            </StackPanel>
+                            <StackPanel Width="150">
+                                <TextBlock Style="{StaticResource Label}" Text="Their label"/>
+                                <TextBox x:Name="LoopbackLabel"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Language is an ISO code (en, es). The labels are how each speaker appears in the transcript sent to the model."/>
+
+                        <Separator Margin="0,10,0,16" Background="{StaticResource Edge}"/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Answer style"/>
+                        <TextBox x:Name="AnswerStyle" AcceptsReturn="True" TextWrapping="NoWrap"
+                                 Height="200" FontFamily="Consolas" FontSize="12"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="How answers are written, as instructions to the model. Leave it empty to use the built-in default — clearing this box is always a safe way back. Saved with the profile, so different meeting types can answer differently. Takes effect on the next session."/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <Button Content="Load the default to edit" Click="OnLoadDefaultStyle" Margin="0,0,8,0"/>
+                            <Button Content="Clear" Click="OnClearStyle"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ DEVICES ============================ -->
+                <ScrollViewer x:Name="DevicesPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Devices"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="Where your voice and the meeting's audio come from. Changes apply to the next meeting."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Microphone (you)"/>
+                        <ComboBox x:Name="MicDevice" Width="480" HorizontalAlignment="Left"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Leave on Windows default unless you have a reason not to. A pinned device cannot follow Windows when you unplug or switch it, so the session has to re-acquire it instead of recovering automatically."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="System audio (them)"/>
+                        <ComboBox x:Name="LoopbackDevice" Width="480" HorizontalAlignment="Left"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Loopback records what this playback device is playing — so it must be the one the meeting audio actually comes out of."/>
+
+                        <Button Content="Refresh list" Width="110" HorizontalAlignment="Left" Click="OnRefreshDevices"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================== KEYS ============================== -->
+                <ScrollViewer x:Name="KeysPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Keys"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="Groq turns speech into text; Gemini writes the answers and plays the other party in a rehearsal."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Groq API key (transcription)"/>
+                        <PasswordBox x:Name="GroqKey" Width="480" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="Test" Width="80" Click="OnTestGroq" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="GroqStatus" Text="" VerticalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                        <TextBlock x:Name="GroqCurrent" Style="{StaticResource Hint}" Text=""/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Groq plan"/>
+                        <ComboBox x:Name="GroqPlanPicker" Width="480" HorizontalAlignment="Left">
+                            <ComboBoxItem Content="Free (20 requests a minute)"/>
+                            <ComboBoxItem Content="Developer, paid (400 requests a minute)"/>
+                        </ComboBox>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="On the free plan a lively meeting can outrun the limit and the transcript falls behind; the overlay then says by how much. Applies to the next meeting."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Gemini API key (answers)"/>
+                        <PasswordBox x:Name="GeminiKey" Width="480" HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="Test" Width="80" Click="OnTestGemini" Margin="0,0,10,0"/>
+                            <TextBlock x:Name="GeminiStatus" Text="" VerticalAlignment="Center" FontSize="12"/>
+                        </StackPanel>
+                        <TextBlock x:Name="GeminiCurrent" Style="{StaticResource Hint}" Text=""/>
+
+                        <Separator Margin="0,10,0,16" Background="{StaticResource Edge}"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Width="280" Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Label}" Text="Answer model"/>
+                                <TextBox x:Name="GeminiModel"/>
+                            </StackPanel>
+                            <StackPanel Width="280">
+                                <TextBlock Style="{StaticResource Label}" Text="Transcription model"/>
+                                <TextBox x:Name="SttModel"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Plain strings, so a new model needs no rebuild. Test checks that the answer model is one this key can actually use."/>
+
+                        <TextBlock x:Name="KeyNotice" Style="{StaticResource Hint}" Text="" Foreground="{StaticResource Warn}"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Keys are encrypted with your Windows account and never written to the log. Leave a box empty to keep the key that is already stored. Environment variables, if set, override what is here."/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ HOTKEYS ============================ -->
+                <ScrollViewer x:Name="HotkeysPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Hotkeys"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="They work from any application, so you never have to bring this window or the overlay forward during a meeting."/>
+
+                        <TextBlock x:Name="HotkeyNotice" Style="{StaticResource Hint}" Text=""/>
+                        <ItemsControl x:Name="HotkeyList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding Action}" Width="170"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding Combo, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="220"/>
+                                        <TextBlock Text="{Binding Note}" Margin="12,0,0,0" FontSize="11"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource Warn}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,10,0,0"
+                                   Text="Written as Ctrl+Alt+G, Ctrl+Alt+Shift+Space, Win+Alt+F5. Every combination needs at least one modifier. Rebinding takes effect immediately on save; a combination another app already owns is reported rather than silently ignored."/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ OVERLAY ============================ -->
+                <ScrollViewer x:Name="OverlayPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Overlay"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="The panel that shows cue notes during a meeting. Like this window, it is hidden from screen sharing."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Position and opacity"/>
+                        <ComboBox x:Name="OverlayPreset" Width="480" HorizontalAlignment="Left"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="The cycle hotkey steps through these during a meeting."/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Width="150" Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Label}" Text="Font size"/>
+                                <TextBox x:Name="OverlayFontSize"/>
+                            </StackPanel>
+                            <StackPanel Width="150" Margin="0,0,16,0">
+                                <TextBlock Style="{StaticResource Label}" Text="Width"/>
+                                <TextBox x:Name="OverlayWidth"/>
+                            </StackPanel>
+                            <StackPanel Width="150">
+                                <TextBlock Style="{StaticResource Label}" Text="Max height"/>
+                                <TextBox x:Name="OverlayMaxHeight"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Size changes apply on restart — the overlay reads them when it is created. Position and opacity apply immediately."/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- =========================== REHEARSAL =========================== -->
+                <ScrollViewer x:Name="RehearsalPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Rehearsal"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="Rehearse with mock call, on Home, starts a meeting where an AI plays the other party. Press the Mock: next line hotkey whenever you want them to speak; they never speak on their own, so a pause to think is never talked over. They hear the conversation through the same transcript the cue notes use, and get the same profile."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Voice"/>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="MockVoice" Width="360" Margin="0,0,8,0"/>
+                            <Button Content="Test voice" Width="100" Click="OnTestVoice"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Gemini voices sound natural and use the Gemini key; each line takes about a second to start. If Gemini cannot speak a line (no key, its per-minute limit, no network), that line is spoken by the Windows voice instead. Windows voices are instant and free but harder to follow. The voice plays on the Windows default output, which is where the session listens for the other party. Use headphones: through speakers, your microphone also picks the voice up and transcribes it as you."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Brief for the other party"/>
+                        <TextBox x:Name="MockBrief" AcceptsReturn="True" TextWrapping="Wrap" Height="200"
+                                 VerticalScrollBarVisibility="Auto"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Who they are and how to play them: role, tone, difficulty, sample questions, what to probe. Added on top of the profile, and saved with the profile being edited. Leave it empty to have them play the other party as the meeting notes describe. Never shown to the cue-note assistant."/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- =========================== PLAYBACK ============================ -->
+                <ScrollViewer x:Name="PlaybackPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="Playback"/>
+                        <TextBlock Style="{StaticResource PageLead}"
+                                   Text="Exercises the whole pipeline from recordings, without scheduling a meeting. The session behaves identically; only where the audio comes from changes."/>
+
+                        <CheckBox x:Name="PlaybackMode" Content="Run from WAV files instead of live audio"
+                                  Margin="0,0,0,16"/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Your side (WAV)"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBox x:Name="MicWav" Width="480" Margin="0,0,8,0"/>
+                            <Button Content="Browse…" Click="OnBrowseMicWav"/>
+                        </StackPanel>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Their side (WAV)"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="LoopbackWav" Width="480" Margin="0,0,8,0"/>
+                            <Button Content="Browse…" Click="OnBrowseLoopbackWav"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Both files must be 16 kHz mono, which is what the recorder produces."/>
+
+                        <CheckBox x:Name="PlaybackRealTime" Content="Play at real speed"/>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="On, the fixture plays like a live meeting. Off, it runs as fast as the provider allows, which is faster to test with but says nothing about latency."/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================ GENERAL ============================ -->
+                <ScrollViewer x:Name="GeneralPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock Style="{StaticResource PageTitle}" Text="General"/>
+                        <TextBlock Style="{StaticResource PageLead}" Text="How far back Ask looks, and where transcripts are kept."/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Ask look-back windows"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Narrow" VerticalAlignment="Center" Width="60"/>
+                            <TextBox x:Name="NarrowSeconds" Width="80"/>
+                            <TextBlock Text="seconds" VerticalAlignment="Center" Margin="8,0,24,0"
+                                       Foreground="{StaticResource Muted}"/>
+                            <TextBlock Text="Wide" VerticalAlignment="Center" Width="45"/>
+                            <TextBox x:Name="WideSeconds" Width="80"/>
+                            <TextBlock Text="seconds" VerticalAlignment="Center" Margin="8,0,0,0"
+                                       Foreground="{StaticResource Muted}"/>
+                        </StackPanel>
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="How far back the transcript is sent when you press Ask. The whole meeting is always available to the model as background; this is what it is told to focus on."/>
+
+                        <Separator Margin="0,10,0,16" Background="{StaticResource Edge}"/>
+
+                        <TextBlock Style="{StaticResource Label}" Text="Storage"/>
+                        <TextBlock x:Name="StorageText" Style="{StaticResource Hint}" Text=""/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>

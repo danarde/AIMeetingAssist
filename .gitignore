@@ -1,0 +1,17 @@
+bin/
+obj/
+*.user
+.vs/
+
+# Recorded audio fixtures and hand-typed ground truth. Can be large; never committed.
+fixtures/
+
+# Local config that may contain secrets.
+*.local.json
+profile.local.json
+# The working profile holds real customer context once edited.
+profile.json
+
+# Spike output
+logs/
+out/

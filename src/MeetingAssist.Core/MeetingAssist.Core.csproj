@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NAudio 3: WasapiRecorderBuilder supersedes WasapiCapture/WasapiLoopbackCapture. -->
+    <PackageReference Include="NAudio.Wasapi" Version="3.0.1" />
+    <!-- Official Google SDK; brings Microsoft.Extensions.AI.Abstractions transitively. -->
+    <PackageReference Include="Google.GenAI" Version="1.20.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="10.6.0" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <!-- Transcript persistence (FR-5.4). Segments are written as they finalize, so a crash
+         mid-meeting loses nothing. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+    <!-- DPAPI (FR-10.1). Still a separate package on .NET 10, and Windows-only, which this
+         project already is. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.11" />
+    <!-- Mock mode's voice (backlog §3): the Windows SAPI voices, local and free. A separate
+         package on .NET 10, like ProtectedData. -->
+    <PackageReference Include="System.Speech" Version="10.0.11" />
+  </ItemGroup>
+
+</Project>

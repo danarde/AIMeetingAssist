@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MeetingAssist.App/MeetingAssist.App.csproj" />
+    <Project Path="src/MeetingAssist.CaptureProbe/MeetingAssist.CaptureProbe.csproj" />
+    <Project Path="src/MeetingAssist.Core/MeetingAssist.Core.csproj" />
+    <Project Path="src/MeetingAssist.Spike/MeetingAssist.Spike.csproj" />
+    <Project Path="src/MeetingAssist.Tests/MeetingAssist.Tests.csproj" />
+  </Folder>
+</Solution>

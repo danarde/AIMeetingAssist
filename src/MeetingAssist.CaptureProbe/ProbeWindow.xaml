@@ -1,0 +1,61 @@
+<Window x:Class="MeetingAssist.CaptureProbe.ProbeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Capture probe"
+        Width="620" Height="380"
+        Topmost="True"
+        ThemeMode="Dark"
+        WindowStartupLocation="CenterScreen">
+
+    <!--
+        Deliberately loud. The probe's whole job is to be unmistakable in a screen share:
+        if the far side is squinting to decide whether they can see it, the test has failed
+        to answer the question.
+    -->
+    <Border Padding="28" CornerRadius="8">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#7F1D1D" Offset="0"/>
+                <GradientStop Color="#450A0A" Offset="1"/>
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Top"
+                       Text="CAPTURE PROBE"
+                       FontSize="15" FontWeight="Bold"
+                       Foreground="#FCA5A5"
+                       Opacity="0.85"/>
+
+            <TextBlock x:Name="StateText"
+                       DockPanel.Dock="Top"
+                       Margin="0,14,0,0"
+                       Text="EXCLUDED FROM CAPTURE"
+                       FontSize="40" FontWeight="Bold"
+                       Foreground="White"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock x:Name="DetailText"
+                       DockPanel.Dock="Top"
+                       Margin="0,12,0,0"
+                       FontSize="13" FontFamily="Consolas"
+                       Foreground="#FECACA"
+                       TextWrapping="Wrap"/>
+
+            <TextBlock DockPanel.Dock="Bottom"
+                       FontSize="14" Foreground="#FEE2E2"
+                       TextWrapping="Wrap">
+                <Run FontWeight="Bold" Text="SPACE"/><Run Text=" toggle exclusion  ·  "/>
+                <Run FontWeight="Bold" Text="ESC"/><Run Text=" quit"/>
+                <LineBreak/>
+                <Run Text="Drag the window to move it."/>
+            </TextBlock>
+
+            <TextBlock x:Name="InstructionText"
+                       Margin="0,18,0,18"
+                       FontSize="16" Foreground="White"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+        </DockPanel>
+    </Border>
+</Window>

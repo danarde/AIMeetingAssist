@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Throwaway probe for spec O6: does SetWindowDisplayAffinity actually hide a window from
+    Teams, Zoom and Meet? Deliberately standalone and dependency-free so a failure here is
+    a fact about Windows, not about our code. Delete once O6 is settled.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>captureprobe</AssemblyName>
+    <RootNamespace>MeetingAssist.CaptureProbe</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Required by [LibraryImport]; the source generator emits unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+</Project>

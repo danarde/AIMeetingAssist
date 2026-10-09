@@ -1,0 +1,211 @@
+<Window x:Class="MeetingAssist.App.Overlay.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MeetingAssist.App.Overlay"
+        Title="MeetingAssist"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ShowActivated="False"
+        SizeToContent="Height"
+        Width="460">
+
+    <Window.Resources>
+        <!-- Status colours. Degraded and Error are deliberately loud: a silently broken
+             session is the failure mode that costs a meeting. -->
+        <SolidColorBrush x:Key="Idle" Color="#64748B"/>
+        <SolidColorBrush x:Key="Recording" Color="#22C55E"/>
+        <SolidColorBrush x:Key="Paused" Color="#A78BFA"/>
+        <SolidColorBrush x:Key="Thinking" Color="#38BDF8"/>
+        <SolidColorBrush x:Key="Degraded" Color="#F59E0B"/>
+        <SolidColorBrush x:Key="Error" Color="#EF4444"/>
+
+        <!-- Segoe Fluent Icons ships with Windows 11; MDL2 Assets has the same code points on 10. -->
+        <FontFamily x:Key="Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+        <Style x:Key="Icon" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource Icons}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Not focusable: the overlay never takes focus (FR-7.4), so a click acts without
+             taking the keyboard away from the meeting app. -->
+        <Style x:Key="Action" TargetType="Button">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Padding" Value="11,5"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="300"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                CornerRadius="{TemplateBinding local:ButtonChrome.CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="#334155"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="#475569"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.35"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Ask is the button pressed most, so it is the one that stands out. -->
+        <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource Action}">
+            <Setter Property="Foreground" Value="#E0F2FE"/>
+            <Setter Property="Background" Value="#0C4A6E"/>
+            <Setter Property="BorderBrush" Value="#0369A1"/>
+        </Style>
+
+        <!-- Window controls in the status row: no chrome until hovered. -->
+        <Style x:Key="Chromeless" TargetType="Button" BasedOn="{StaticResource Action}">
+            <Setter Property="Padding" Value="7,5"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+    </Window.Resources>
+
+    <Border CornerRadius="10" Background="#F00E1525" Padding="18,13,18,15">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Opacity="0.55" Color="Black"/>
+        </Border.Effect>
+
+        <DockPanel>
+            <!-- Status row: state dot and label, window controls on the right. -->
+            <DockPanel DockPanel.Dock="Top" LastChildFill="False">
+                <Ellipse x:Name="StateDot" Width="9" Height="9"
+                         Fill="{StaticResource Idle}"
+                         VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBlock x:Name="StateText" Text="Idle"
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="#94A3B8" VerticalAlignment="Center"/>
+
+                <Button DockPanel.Dock="Right" Style="{StaticResource Chromeless}" Click="OnSettings"
+                        ToolTip="Open MeetingAssist: settings and past meetings" Margin="2,0,-7,0">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE713;" FontSize="13"/>
+                </Button>
+                <Button DockPanel.Dock="Right" Style="{StaticResource Chromeless}" Click="OnAction"
+                        Tag="ToggleOverlay" Margin="0">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xED1A;" FontSize="13"/>
+                </Button>
+
+                <!-- Sound arriving on each channel, so a dead microphone or a silent loopback
+                     shows at a glance. Kept faint: it is reassurance, not something to watch. -->
+                <StackPanel x:Name="Meters" DockPanel.Dock="Right" Orientation="Horizontal"
+                            VerticalAlignment="Center" Margin="0,0,10,0" Background="Transparent"
+                            Visibility="Collapsed"
+                            ToolTip="Sound coming in: your microphone, and the meeting's audio">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE720;" FontSize="10"
+                               Foreground="#64748B" Margin="0,0,4,0"/>
+                    <Border Width="22" Height="3" CornerRadius="1.5" Background="#1E293B">
+                        <Border HorizontalAlignment="Left" Width="22" CornerRadius="1.5"
+                                Background="#4ADE80" Opacity="0.8">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="MicScale" ScaleX="0"/>
+                            </Border.RenderTransform>
+                        </Border>
+                    </Border>
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE767;" FontSize="10"
+                               Foreground="#64748B" Margin="10,0,4,0"/>
+                    <Border Width="22" Height="3" CornerRadius="1.5" Background="#1E293B">
+                        <Border HorizontalAlignment="Left" Width="22" CornerRadius="1.5"
+                                Background="#38BDF8" Opacity="0.8">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="LoopbackScale" ScaleX="0"/>
+                            </Border.RenderTransform>
+                        </Border>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- The hotkeys, or a passing status message. Wraps rather than trimming: a hint
+                 cut off half way is one the user cannot act on. -->
+            <TextBlock x:Name="HintText" DockPanel.Dock="Top" Text=""
+                       FontSize="11" Foreground="#64748B" TextWrapping="Wrap"
+                       Margin="0,3,0,0"/>
+
+            <!-- FR-7.3: persistent, unmissable when the core promise is broken. -->
+            <Border x:Name="WarningBanner" DockPanel.Dock="Top"
+                    Visibility="Collapsed"
+                    Background="#7F1D1D" CornerRadius="6"
+                    Padding="10,8" Margin="0,12,0,0">
+                <TextBlock x:Name="WarningText"
+                           FontSize="13" FontWeight="SemiBold" Foreground="#FEE2E2"
+                           TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Every action the hotkeys reach, grouped by purpose: the session, the cue notes,
+                 the mock counterpart. The tooltips name each one's hotkey. -->
+            <WrapPanel x:Name="Actions" DockPanel.Dock="Bottom" Margin="0,14,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+                    <Button x:Name="SessionButton" Style="{StaticResource Action}" Click="OnAction"
+                            Tag="ToggleSession" Margin="0,0,6,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="SessionIcon" Style="{StaticResource Icon}" Text="&#xF5B0;"
+                                       Foreground="#4ADE80" Margin="0,0,7,0"/>
+                            <TextBlock x:Name="SessionLabel" Text="Start"/>
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="PauseButton" Style="{StaticResource Action}" Click="OnAction" Tag="TogglePause">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="PauseIcon" Style="{StaticResource Icon}" Text="&#xF8AE;"
+                                       Foreground="#C4B5FD" Margin="0,0,7,0"/>
+                            <TextBlock x:Name="PauseLabel" Text="Pause"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,14,0">
+                    <Button Style="{StaticResource Primary}" Click="OnAction" Tag="AskNarrow"
+                            local:ButtonChrome.CornerRadius="6,0,0,6">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xEA80;" Margin="0,0,7,0"/>
+                            <TextBlock Text="Ask"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Primary}" Click="OnAction" Tag="AskWide"
+                            local:ButtonChrome.CornerRadius="0,6,6,0" Margin="-1,0,0,0">
+                        <TextBlock Text="Wide"/>
+                    </Button>
+                </StackPanel>
+
+                <Button x:Name="MockButton" Style="{StaticResource Action}" Click="OnAction" Tag="MockNext">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE8F2;" Margin="0,0,7,0"/>
+                        <TextBlock Text="Next line"/>
+                    </StackPanel>
+                </Button>
+            </WrapPanel>
+
+            <ScrollViewer x:Name="AnswerScroll"
+                          MaxHeight="520" Margin="0,12,0,0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <TextBlock x:Name="AnswerText"
+                           FontSize="19"
+                           LineHeight="30" LineStackingStrategy="BlockLineHeight"
+                           Foreground="#F1F5F9"
+                           TextWrapping="Wrap"
+                           Text="Press Start, or Ctrl+Alt+R, to start a session."/>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>

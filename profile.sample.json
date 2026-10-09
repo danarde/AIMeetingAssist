@@ -1,0 +1,10 @@
+{
+  "name": "sample",
+  "meeting": "Discovery call. Attendees: procurement lead and a data engineer. They came via a webinar. Goal: qualify and book a technical deep-dive.",
+  "aboutMe": "Acme Analytics — mid-market BI tooling, 40 staff, founded 2019.\n\nAcme Pulse: self-serve dashboards with governed data models. Per-seat pricing from $29/user/month; Enterprise tier adds SSO and audit logs.",
+  "questions": ""Too expensive" -> compare against analyst hours saved, not against competitors.\n"We already use Power BI" -> Pulse complements it; emphasise governed models.\n"Security review takes months" -> SOC 2 Type II available, reference the pre-filled VSAQ.",
+  "vocabulary": "Acme Analytics, Acme Pulse, Power BI, SOC 2, VSAQ, SSO, governed data model, per-seat, Snowflake, dbt, semantic layer",
+  "language": "en",
+  "micLabel": "You",
+  "loopbackLabel": "Customer"
+}

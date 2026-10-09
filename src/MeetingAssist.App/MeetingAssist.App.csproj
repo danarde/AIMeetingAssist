@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- For NotifyIcon only. WPF has no tray icon of its own, and the in-box WinForms one
+         avoids a third-party dependency for a single control. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>meetingassist</AssemblyName>
+    <RootNamespace>MeetingAssist.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Rendered by tools/render-icon.cs; edit the design there, not the file. -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Required by [LibraryImport]; the source generator emits unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Enabling UseWindowsForms adds these to the implicit global usings, which then collide
+         with WPF on Application, TextBox, Button, Orientation and more. This is a WPF app that
+         borrows one WinForms control; only Tray/ imports those namespaces, and it does so
+         explicitly. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Also a resource, for the main window's title bar and taskbar button. -->
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MeetingAssist.Core\MeetingAssist.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.3.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+  </ItemGroup>
+
+</Project>

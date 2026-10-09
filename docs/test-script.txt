@@ -1,0 +1,30 @@
+Read this aloud at a normal conversational pace, with natural pauses between paragraphs.
+Roughly 90 seconds. Then copy this file to your fixture folder as truth.txt — see README.
+
+It deliberately loads proper nouns, product names, numbers and acronyms, because those are
+where speech recognition actually fails and where vocabulary priming should show an effect.
+The content matches profile.sample.json, so the vocabulary A/B is meaningful straight away.
+
+---
+
+Thanks for making time today. Before I get into the demo, I wanted to understand what brought
+you to the webinar in the first place.
+
+Right, so the pattern I hear most often is exactly that. Your data engineer spends half his
+week answering ad hoc dashboard requests, and nothing scales. That's the problem Acme Pulse
+was built around, with governed data models sitting on top of Snowflake and dbt.
+
+On pricing, Pulse is twenty nine dollars per user per month on the standard tier. The
+Enterprise tier adds single sign on and audit logs. For forty seats where only twelve people
+actually build anything, most customers land somewhere around fourteen hundred a month.
+
+I know you already pay for Power BI, and I'm not going to pretend Pulse replaces it. The way
+I'd position this internally is as a complement. Power BI stays where it is, and Pulse handles
+the semantic layer so the governed metrics live in one place.
+
+On security, we have SOC 2 Type Two, and I can send you a pre-filled VSAQ so your review team
+isn't starting from a blank form. That usually takes about six weeks off the cycle.
+
+What I'd suggest as a next step is a technical deep dive with your data engineer, maybe forty
+five minutes, where we connect Pulse to a read only Snowflake schema and build something
+real. Would Thursday or Friday work better for you?
