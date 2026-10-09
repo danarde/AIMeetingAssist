@@ -69,6 +69,7 @@ public partial class MainWindow : Window
         {
             [Section.Home] = (NavHome, HomePage),
             [Section.History] = (NavHistory, HistoryPage),
+            [Section.GetStarted] = (NavGetStarted, GetStartedPage),
             [Section.Profile] = (NavProfile, ProfilePage),
             [Section.Devices] = (NavDevices, DevicesPage),
             [Section.Keys] = (NavKeys, KeysPage),
@@ -104,7 +105,13 @@ public partial class MainWindow : Window
 
         HotkeyList.ItemsSource = _hotkeys;
         LoadEverything();
-        NavHome.IsChecked = true;
+        ShowStep(0);
+
+        var config = AppConfig.From(host.Secrets);
+        Navigate(Walkthrough.OpensAtStart(host.Settings.WalkthroughShown,
+            !string.IsNullOrWhiteSpace(config.GroqApiKey), !string.IsNullOrWhiteSpace(config.GeminiApiKey))
+            ? Section.GetStarted
+            : Section.Home);
     }
 
     /// <summary>Why capture exclusion failed for this window, or null when it holds.</summary>
@@ -119,8 +126,12 @@ public partial class MainWindow : Window
         foreach (var (key, (_, page)) in _sections)
             page.Visibility = key == section ? Visibility.Visible : Visibility.Collapsed;
 
-        // Home and History are not settings: nothing on them waits for Save.
-        SaveBar.Visibility = section is Section.Home or Section.History ? Visibility.Collapsed : Visibility.Visible;
+        // Home, History and Get started are not settings: nothing on them waits for Save.
+        SaveBar.Visibility = section is Section.Home or Section.History or Section.GetStarted
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        if (section == Section.GetStarted) RefreshGetStarted();
     }
 
     private void OnEditProfile(object sender, RoutedEventArgs e) => Navigate(Section.Profile);
@@ -128,6 +139,73 @@ public partial class MainWindow : Window
     private void OnFixWarning(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { Tag: Section section }) Navigate(section);
+    }
+
+    // ------------------------------------------------------------------ get started
+
+    private int _step;
+
+    private StackPanel[] StepPanels => [Step1, Step2, Step3, Step4];
+
+    private void ShowStep(int step)
+    {
+        _step = Math.Clamp(step, 0, Walkthrough.Steps - 1);
+        var panels = StepPanels;
+        for (var i = 0; i < panels.Length; i++)
+            panels[i].Visibility = i == _step ? Visibility.Visible : Visibility.Collapsed;
+
+        StepCount.Text = $"GET STARTED · STEP {_step + 1} OF {Walkthrough.Steps}";
+        StepBack.Visibility = _step == 0 ? Visibility.Hidden : Visibility.Visible;
+        StepNext.Content = _step == Walkthrough.Steps - 1 ? "Go to Home" : "Next";
+        GetStartedPage.ScrollToTop();
+    }
+
+    private void OnStepBack(object sender, RoutedEventArgs e) => ShowStep(_step - 1);
+
+    private void OnStepNext(object sender, RoutedEventArgs e)
+    {
+        if (_step == Walkthrough.Steps - 1) Navigate(Section.Home);
+        else ShowStep(_step + 1);
+    }
+
+    /// <summary>
+    /// The statuses on each step, read afresh: keys or a profile may have been saved on their
+    /// own pages since the walkthrough was last shown.
+    /// </summary>
+    private void RefreshGetStarted()
+    {
+        if (!_host.Settings.WalkthroughShown)
+        {
+            _host.Settings.WalkthroughShown = true;
+            _host.Settings.Save();
+        }
+
+        var config = AppConfig.From(_host.Secrets);
+        ShowDone(GroqStep, Walkthrough.KeyStatus("Groq", !string.IsNullOrWhiteSpace(config.GroqApiKey)));
+        ShowDone(GeminiStep, Walkthrough.KeyStatus("Gemini", !string.IsNullOrWhiteSpace(config.GeminiApiKey)));
+        ShowDone(ProfileStep, Walkthrough.ProfileStatus(_host.Profiles.Load(_host.Settings.ProfileName)));
+
+        FirstMeetingList.ItemsSource = Walkthrough.FirstMeeting(_host.Hotkeys.Bindings, _host.FailedHotkeys);
+    }
+
+    private void ShowDone(TextBlock target, (string Text, bool Done) status)
+    {
+        target.Text = (status.Done ? "✓  " : "") + status.Text;
+        target.Foreground = (Brush)FindResource(status.Done ? "Ok" : "Muted");
+    }
+
+    /// <summary>Opens a web page in the default browser; the page's address rides in Tag.</summary>
+    private void OnOpenLink(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string url }) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true })?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not open {Url}", url);
+        }
     }
 
     // ------------------------------------------------------------------ home

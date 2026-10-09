@@ -488,6 +488,42 @@ Turbo scores 4.6% WER and the newest models about half that.
 
 ---
 
+## 9. Get started: a first-run walkthrough
+
+State: **Built** 2026-10-10 on `develop`, not yet released.
+
+### What was asked `[A]`
+
+- A simple walkthrough on first run. The priority is the things to configure and the basic
+  usage, with an example of a meeting and an AI response.
+- New features go to a `develop` branch first.
+
+### Built `[D]`
+
+These were chosen while building and not discussed; change them freely.
+
+- A **Get started** section of the main window, in the sidebar under History, with four steps
+  shown one at a time: how it works, the two keys, the profile, a first meeting.
+- A page of the window, not a popup or a spotlight tour: a popup is a window of its own, and
+  would not be hidden from screen sharing with the main window.
+- **How it works** shows the sample profile's prepared answer, two lines of the call and the
+  overlay's notes after Ask, drawn like the overlay. Static, not animated.
+- **Keys** links to where each key is made and says whether it is saved; **Profile** says
+  whether the active profile is still the sample; both have a button to their page.
+- **First meeting** names the hotkeys as they are actually bound, and flags one another app
+  owns.
+- It opens by itself once, and only when a key is missing, so an update or a reinstall over
+  saved keys still opens on Home (`WalkthroughShown` in `settings.json`).
+- The profile guide is linked on GitHub, because the installer does not ship the `skills`
+  folder. The Profile page's hint, which pointed at "this app's folder", now links there too.
+
+### Open `[P]`
+
+- A checklist on Home that ticks itself off as keys and a profile are saved.
+- A one-time tip in the overlay on the first meeting or rehearsal.
+
+---
+
 ## Done
 
 Entries move here with the commit that closed them, so the reasoning stays findable after

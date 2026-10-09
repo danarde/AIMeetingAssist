@@ -3,7 +3,7 @@ using MeetingAssist.Core.Transcription;
 namespace MeetingAssist.App.Main;
 
 /// <summary>The sections of the main window, in sidebar order.</summary>
-public enum Section { Home, History, Profile, Devices, Keys, Hotkeys, Overlay, Rehearsal, Playback, General }
+public enum Section { Home, History, GetStarted, Profile, Devices, Keys, Hotkeys, Overlay, Rehearsal, Playback, General }
 
 /// <summary>One thing worth fixing, and the section where it is fixed, if there is one.</summary>
 public sealed record HomeWarning(string Text, Section? FixIn = null)

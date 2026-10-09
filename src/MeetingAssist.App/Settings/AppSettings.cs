@@ -65,6 +65,9 @@ public sealed class AppSettings
     /// <summary>An installed Windows voice by name, or null to pick one by the profile's language.</summary>
     public string? MockVoice { get; set; }
 
+    /// <summary>Get started has opened by itself once; from then on it opens only when chosen.</summary>
+    public bool WalkthroughShown { get; set; }
+
     /// <summary>The voice name for whichever engine is chosen.</summary>
     [JsonIgnore]
     public string? MockVoiceName => MockVoiceEngine == VoiceEngine.Gemini ? MockGeminiVoice : MockVoice;

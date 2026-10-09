@@ -1,6 +1,7 @@
 <Window x:Class="MeetingAssist.App.Main.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MeetingAssist.App.Main"
         Title="MeetingAssist"
         Width="1000" Height="720"
         MinWidth="820" MinHeight="540"
@@ -278,6 +279,7 @@
                 <StackPanel>
                     <RadioButton x:Name="NavHome" Style="{StaticResource Nav}" Content="Home" Tag="&#xE80F;"/>
                     <RadioButton x:Name="NavHistory" Style="{StaticResource Nav}" Content="History" Tag="&#xE81C;"/>
+                    <RadioButton x:Name="NavGetStarted" Style="{StaticResource Nav}" Content="Get started" Tag="&#xE82F;"/>
                     <TextBlock Style="{StaticResource Overline}" Text="SETTINGS" Margin="24,22,0,6"/>
                     <RadioButton x:Name="NavProfile" Style="{StaticResource Nav}" Content="Profile" Tag="&#xE77B;"/>
                     <RadioButton x:Name="NavDevices" Style="{StaticResource Nav}" Content="Devices" Tag="&#xE720;"/>
@@ -454,6 +456,172 @@
                     </StackPanel>
                 </ScrollViewer>
 
+                <!-- ========================== GET STARTED ========================== -->
+                <!-- A walkthrough in four steps, one shown at a time. It opens by itself the first
+                     time the app has no keys (Walkthrough.OpensAtStart), and from the sidebar after
+                     that. A page of this window rather than a popup, because a popup is a window of
+                     its own and would not be hidden from screen sharing with this one. -->
+                <ScrollViewer x:Name="GetStartedPage" Style="{StaticResource Page}">
+                    <StackPanel Style="{StaticResource PageBody}">
+                        <TextBlock x:Name="StepCount" Style="{StaticResource Overline}" Margin="0,0,0,8"/>
+
+                        <!-- 1. How it works, shown on the sample profile the app comes with. -->
+                        <StackPanel x:Name="Step1">
+                            <TextBlock Style="{StaticResource PageTitle}" Text="How it works"/>
+                            <TextBlock Style="{StaticResource PageLead}"
+                                       Text="MeetingAssist listens to both sides of an online call and writes down what is said. When you press Ask, an AI reads the last minute together with the profile you prepared, and shows a few short notes in a small window only you can see. Here is an example, using the sample profile the app comes with."/>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Style="{StaticResource Overline}" Text="WHAT YOU PREPARED, IN THE PROFILE"/>
+                                    <TextBlock Margin="0,8,0,20" TextWrapping="Wrap" FontSize="12.5" Foreground="#E2E8F0"
+                                               Text="&quot;Will we make 14 March?&quot; -> Yes for 37 pipelines; the 3 CRM ones need the export fixed by 28 February."/>
+
+                                    <TextBlock Style="{StaticResource Overline}" Text="WHAT WAS SAID IN THE CALL"/>
+                                    <Grid Margin="0,8,0,20">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="56"/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="Priya" FontSize="12.5" Foreground="#60A5FA" FontWeight="SemiBold"/>
+                                        <TextBlock Grid.Column="1" TextWrapping="Wrap" FontSize="12.5" Foreground="#E2E8F0"
+                                                   Text="Before we sign off on the date: are we really making 14 March? I heard some pipelines are stuck."/>
+                                        <TextBlock Grid.Row="1" Text="You" FontSize="12.5" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" TextWrapping="Wrap" FontSize="12.5"
+                                                   Foreground="#E2E8F0" Margin="0,6,0,0"
+                                                   Text="Fair question. Let me give you the full picture."/>
+                                    </Grid>
+
+                                    <TextBlock Style="{StaticResource Overline}" Text="WHAT YOU SEE AFTER PRESSING ASK"/>
+                                    <!-- Drawn like the overlay's answer area, at a smaller size. -->
+                                    <Border Width="440" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                            CornerRadius="10" Background="#0E1525" BorderBrush="#33415A"
+                                            BorderThickness="1" Padding="18,13,18,15">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="9" Height="9" Fill="#22C55E" Margin="0,0,8,0"/>
+                                                <TextBlock Text="Recording" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8"/>
+                                            </StackPanel>
+                                            <TextBlock Margin="0,10,0,0" FontSize="16" LineHeight="26"
+                                                       LineStackingStrategy="BlockLineHeight" TextWrapping="Wrap"
+                                                       Foreground="#F1F5F9"
+                                                       Text="- Yes for 37 of the 40 pipelines&#10;- The 3 CRM ones need Northwind's export fixed by 28 Feb&#10;- Nightly load already down from 5 hours to 70 minutes&#10;- Ask who on their side owns the CRM fix"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,12,0,0"
+                                               Text="Notes are cues to glance at while you talk, not a script to read. They come from what you prepared, so the better the profile, the better the notes."/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- 2. The two keys, where to get them, and whether they are saved. -->
+                        <StackPanel x:Name="Step2">
+                            <TextBlock Style="{StaticResource PageTitle}" Text="Add your two keys"/>
+                            <TextBlock Style="{StaticResource PageLead}"
+                                       Text="The app uses two AI services, each with its own key. Both have a free tier, and making a key takes a minute."/>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="Groq" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,6" Text="Turns speech into text."/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                                        <Button Style="{StaticResource Link}" Content="Get a Groq key" Click="OnOpenLink"
+                                                Tag="{x:Static local:Walkthrough.GroqKeysUrl}"/>
+                                        <TextBlock x:Name="GroqStep" FontSize="12" Margin="20,0,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Text="Google Gemini" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,6"
+                                               Text="Writes the notes, and plays the other side when you rehearse."/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource Link}" Content="Get a Gemini key" Click="OnOpenLink"
+                                                Tag="{x:Static local:Walkthrough.GeminiKeysUrl}"/>
+                                        <TextBlock x:Name="GeminiStep" FontSize="12" Margin="20,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="Copy each key, then on the Keys page paste it, press Test and Save. On Groq's free plan a busy meeting can make the transcript fall behind; its paid Developer plan keeps up."/>
+                            <Button Style="{StaticResource Quiet}" Content="Open Keys" HorizontalAlignment="Left"
+                                    Tag="{x:Static local:Section.Keys}" Click="OnFixWarning"/>
+                        </StackPanel>
+
+                        <!-- 3. The profile: what goes in it, and an AI to write it. -->
+                        <StackPanel x:Name="Step3">
+                            <TextBlock Style="{StaticResource PageTitle}" Text="Prepare your meeting"/>
+                            <TextBlock Style="{StaticResource PageLead}"
+                                       Text="Before a meeting, tell the assistant what it is about in a profile. Each kind of meeting can have its own, and you pick one on Home before you start."/>
+
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="This meeting" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,12"
+                                               Text="The goal, who is attending and who they are, the agenda."/>
+                                    <TextBlock Text="About me" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,12"
+                                               Text="Your role, and the figures and stories you may want to hand."/>
+                                    <TextBlock Text="Likely questions, with my answers" FontWeight="SemiBold"/>
+                                    <TextBlock Style="{StaticResource Hint}" Margin="0,2,0,0"
+                                               Text="What you expect to be asked, and what you want to say. This is what shapes the notes most."/>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource Label}" Text="Or let an AI write it"/>
+                            <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,6"
+                                       Text="Give any AI chat the profile guide, together with what you have: an agenda, emails, earlier notes. It asks about what is missing and writes the profile. Copy what it writes, then press Paste from AI on the Profile page."/>
+                            <Button Style="{StaticResource Link}" Content="Open the profile guide" HorizontalAlignment="Left"
+                                    Tag="{x:Static local:Walkthrough.ProfileGuideUrl}"
+                                    Click="OnOpenLink" Margin="0,0,0,18"/>
+
+                            <TextBlock x:Name="ProfileStep" FontSize="12" Margin="0,0,0,12"/>
+                            <Button Style="{StaticResource Quiet}" Content="Open Profile" HorizontalAlignment="Left"
+                                    Tag="{x:Static local:Section.Profile}" Click="OnFixWarning"/>
+                        </StackPanel>
+
+                        <!-- 4. A first meeting, with the hotkeys as they are actually bound. -->
+                        <StackPanel x:Name="Step4">
+                            <TextBlock Style="{StaticResource PageTitle}" Text="Your first meeting"/>
+                            <TextBlock Style="{StaticResource PageLead}"
+                                       Text="Try it first with Rehearse with mock call, on Home: an AI plays the other side by voice, using the same profile. Use headphones, so your microphone does not pick up its voice."/>
+
+                            <Border Style="{StaticResource Card}">
+                                <ItemsControl x:Name="FirstMeetingList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel Margin="0,4,0,8">
+                                                <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11"
+                                                        Background="{StaticResource Field}" Margin="0,0,14,0" VerticalAlignment="Top">
+                                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11"
+                                                               FontWeight="SemiBold" Foreground="{StaticResource Accent}"
+                                                               Text="{Binding Number}"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="12.5" Foreground="#E2E8F0"
+                                                           VerticalAlignment="Center"/>
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+
+                            <TextBlock Style="{StaticResource Hint}"
+                                       Text="The overlay and this window are hidden from screen sharing, so sharing your screen shows your slides and not your notes. Two things cannot be hidden: the small dot in the system tray, and your mouse cursor."/>
+                        </StackPanel>
+
+                        <DockPanel Margin="0,20,0,0">
+                            <Button x:Name="StepNext" DockPanel.Dock="Right" Style="{StaticResource Primary}"
+                                    Padding="26,8" Click="OnStepNext"/>
+                            <Button x:Name="StepBack" DockPanel.Dock="Right" Style="{StaticResource Quiet}"
+                                    Padding="20,8" Margin="0,0,10,0" Content="Back" Click="OnStepBack"/>
+                            <TextBlock/>
+                        </DockPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
                 <!-- ============================ PROFILE ============================ -->
                 <ScrollViewer x:Name="ProfilePage" Style="{StaticResource Page}">
                     <StackPanel Style="{StaticResource PageBody}">
@@ -470,8 +638,11 @@
                             <Button Content="Paste from AI" Click="OnPasteProfile"
                                     ToolTip="Make a new profile from the JSON an AI chat wrote and you copied"/>
                         </StackPanel>
-                        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,20"
-                                   Text="To have an AI write a profile, give it skills/meeting-profile/profile-guide.md from this app's folder, or the meeting-profile skill in Claude, with what you know about the meeting. Copy the JSON it writes, then Paste from AI."/>
+                        <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,2"
+                                   Text="To have an AI write a profile, give it the profile guide, or the meeting-profile skill in Claude, with what you know about the meeting. Copy the JSON it writes, then Paste from AI."/>
+                        <Button Style="{StaticResource Link}" Content="Open the profile guide" FontSize="11"
+                                HorizontalAlignment="Left" Margin="0,0,0,20"
+                                Tag="{x:Static local:Walkthrough.ProfileGuideUrl}" Click="OnOpenLink"/>
 
                         <TextBlock Style="{StaticResource Label}" Text="This meeting"/>
                         <TextBox x:Name="MeetingText" AcceptsReturn="True" TextWrapping="Wrap" Height="84"

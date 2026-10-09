@@ -15,20 +15,20 @@ public sealed class Updates
 {
     private const string Repository = "https://github.com/danarde/AIMeetingAssist";
 
-    private readonly UpdateManager _manager = new(new GithubSource(Repository, null, false));
+    private UpdateManager? _manager;
 
     public void DownloadInBackground()
     {
-        if (!_manager.IsInstalled) return;
+        if (Installed() is not { } manager) return;
 
         _ = Task.Run(async () =>
         {
             try
             {
-                var update = await _manager.CheckForUpdatesAsync();
+                var update = await manager.CheckForUpdatesAsync();
                 if (update is null) return;
 
-                await _manager.DownloadUpdatesAsync(update);
+                await manager.DownloadUpdatesAsync(update);
                 Log.Information("Update {Version} downloaded; it installs when the app quits",
                     update.TargetFullRelease.Version);
             }
@@ -40,15 +40,34 @@ public sealed class Updates
         });
     }
 
+    /// <summary>
+    /// The update manager, or null when this copy is not installed. Created on first use, and
+    /// never in a constructor: it throws in a process that did not start through
+    /// <see cref="Program.Main"/>, such as a test or a tool hosting the app's windows.
+    /// </summary>
+    private UpdateManager? Installed()
+    {
+        try
+        {
+            _manager ??= new UpdateManager(new GithubSource(Repository, null, false));
+            return _manager.IsInstalled ? _manager : null;
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Updates are off: Velopack is not available in this process");
+            return null;
+        }
+    }
+
     /// <summary>Call on quit. The updater waits for this process to exit, then installs.</summary>
     public void ApplyOnExit()
     {
         try
         {
-            if (!_manager.IsInstalled || _manager.UpdatePendingRestart is not { } pending) return;
+            if (Installed() is not { UpdatePendingRestart: { } pending } manager) return;
 
             Log.Information("Installing update {Version} on exit", pending.Version);
-            _manager.WaitExitThenApplyUpdates(pending, silent: true, restart: false);
+            manager.WaitExitThenApplyUpdates(pending, silent: true, restart: false);
         }
         catch (Exception ex)
         {
